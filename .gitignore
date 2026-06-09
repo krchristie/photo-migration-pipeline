@@ -1,0 +1,18 @@
+# Ignore local runtime configuration
+.renamer_config
+
+# Ignore personal lookup databases
+photographerIDs.txt
+photoPlaces.txt
+
+# Ignore generated TSV spreadsheets
+*_report.tsv
+*_matrix.tsv
+
+# ==========================================
+# Python Bytecode and Cache
+# ==========================================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
