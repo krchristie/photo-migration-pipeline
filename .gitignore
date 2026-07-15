@@ -1,13 +1,21 @@
-# Ignore local runtime configuration
-.renamer_config
+# Ignore personal notes for improvements
+notesForImprovements.txt
 
 # Ignore personal lookup databases
 photographerIDs.txt
 photoPlaces.txt
 
+# Photo Pipeline Local State
+photo_scan_config.txt
+report_save_config.txt
+
 # Ignore generated TSV spreadsheets
 *_report.tsv
 *_matrix.tsv
+
+# macOS folder metadata (Desktop Services Store)
+# Automatically created by Finder to store directory view settings, icon positions, and custom attributes.
+.DS_Store
 
 # ==========================================
 # Python Bytecode and Cache
@@ -16,3 +24,4 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+
