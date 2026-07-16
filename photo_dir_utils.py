@@ -294,17 +294,22 @@ def write_execution_log(save_dir, file_base, metadata, summary_lines, photog_dat
             for key, val in metadata.items():
                 f.write(f"{key.upper()}: {val}\n")
             
-            # 2. Photographer Info Block (Inserted conditionally)
+            # 2. Photographer Info Block (Cases 1-4)
             if photog_data and photog_data.get("photog_display"):
                 f.write("\n=== PHOTOGRAPHER INFO ===\n")
-                default_str = "YES" if photog_data["photog_is_default"] else "NO"
+                display = photog_data["photog_display"]
+                is_new = photog_data.get("photog_is_new", False)
+                is_default = photog_data.get("photog_is_default", False)
                 
-                if photog_data["photog_is_new"]:
-                    f.write(f"Photographer added: {photog_data['photog_display']}\n")
-                    f.write(f"Made default?: {default_str}\n")
+                if is_new:
+                    f.write(f"Photographer added: {display}\n")
                 else:
-                    f.write(f"Photographer selected: {photog_data['photog_display']}\n")
-                    f.write(f"Current default?: {default_str}\n")
+                    f.write(f"Photographer selected: {display}\n")
+                
+                if is_default:
+                    f.write("Selected as new default\n")
+                else:
+                    f.write("Existing default unchanged\n")
 
             # 3. Run Summary Block
             f.write("\n=== RUN SUMMARY ===\n")
@@ -483,6 +488,7 @@ def prompt_report_configuration(start_scan_dir, start_save_dir, show_photographe
                 fieldbackground=[("!disabled", "#9600FF")]
             )
             opt_p.config(font=("Arial", 12, "bold"))
+            update_default_checkbox_state()
 
         opt_p.bind("<<ComboboxSelected>>", apply_selection_highlight)
         
@@ -505,6 +511,24 @@ def prompt_report_configuration(start_scan_dir, start_save_dir, show_photographe
             activeforeground="#9600FF"
         )
         chk_default.pack(side="left")
+
+        # Dynamic disabling rule for the "Make default" checkbox (Case 1)
+        def update_default_checkbox_state(*args):
+            override_val = ent_override.get().strip() if ent_override else ""
+            dropdown_val = var_photog.get()
+            if not override_val and dropdown_val == default_photog:
+                chk_default.config(state="disabled")
+                var_make_default.set(False)
+            else:
+                chk_default.config(state="normal")
+
+        # Trace modifications to the inputs to evaluate checkbox availability instantly
+        var_photog.trace_add("write", update_default_checkbox_state)
+        if ent_override:
+            ent_override.bind("<KeyRelease>", update_default_checkbox_state)
+        
+        # Seed initial state
+        update_default_checkbox_state()
 
     draw_separator(root)
 
@@ -594,48 +618,52 @@ def prompt_report_configuration(start_scan_dir, start_save_dir, show_photographe
         final_photog = ""
         photog_display = ""
         photog_is_new = False
-        photog_is_default = var_make_default.get()
+        photog_is_default = False
 
         if show_photographer:
             raw_override = ent_override.get().strip() if ent_override else ""
             
             if raw_override:
-                # Validate and parse custom "ID (First Last)" inputs via regex
+                # Cases 3 and 4: New photographer text box entry
+                photog_is_new = True
                 match = re.match(r"^([^\s(]+)\s*\(([^)]+)\)", raw_override)
                 if match:
                     new_id = match.group(1).strip()
                     new_name = match.group(2).strip()
                     final_photog = new_id
                     photog_display = f"{new_id} ({new_name})"
-                    photog_is_new = True
                     
-                    if photog_is_default:
+                    if var_make_default.get():
+                        photog_is_default = True
                         loaded_profiles[new_id] = new_name
                         save_photographer_database(PHOTOG_FILE, loaded_profiles, new_id)
                     else:
+                        photog_is_default = False
                         add_allowed_value(PHOTOG_FILE, f"{new_id}\t{new_name}\t")
                         print(f"  [Database Update] Appended '{new_id}' ({new_name}) to {PHOTOG_FILE}")
                 else:
                     final_photog = raw_override.split()[0]
                     photog_display = f"{final_photog} (Unknown)"
-                    photog_is_new = True
+                    photog_is_default = var_make_default.get()
             else:
-                # Extract the alphanumeric ID token from the selected menu string for logic routing
+                # Cases 1 and 2: Maintained or modified dropdown entry
                 raw_selection = var_photog.get()
+                photog_is_new = False
+                
                 if raw_selection:
                     final_photog = raw_selection.split()[0]
                     photog_display = raw_selection
                     
-                    # If this selection matches the original default, it's YES even if box isn't checked
-                    if raw_selection == default_photog:
+                    # If selection is changed from default and user wants to make it the new default
+                    if raw_selection != default_photog and var_make_default.get():
                         photog_is_default = True
+                        save_photographer_database(PHOTOG_FILE, loaded_profiles, final_photog)
+                    else:
+                        photog_is_default = False
                 else:
                     final_photog = "unk"
                     photog_display = f"{DEFAULT_PHOTOG_ID} ({DEFAULT_PHOTOG_NAME})"
-                
-                if var_make_default.get() and final_photog:
-                    save_photographer_database(PHOTOG_FILE, loaded_profiles, final_photog)
-                    photog_is_default = True
+                    photog_is_default = False
 
         constructed_base = f"{val_host}_{val_repo}_{val_comp}_{val_script}_{val_date}"
 
