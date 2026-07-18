@@ -2,6 +2,8 @@
 Directory Scanner & TSV Reporter
 ================================
 
+DOES NOT RUN IN VERSION 2.0
+
 This script performs a high-performance recursive scan of a specified directory
 and exports metadata (path, type, name, date, size) to a TSV file. 
 
