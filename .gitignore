@@ -1,9 +1,19 @@
+# Ignore personal notes for future development
+notesForImprovements.txt
+
+# Ignore Apple metadata
+*.DS_Store
+
 # Ignore local runtime configuration
 .renamer_config
 
 # Ignore personal lookup databases
 photographerIDs.txt
 photoPlaces.txt
+
+# Ignore personal directory location lookup data
+photo_scan_config.txt
+report_save_config.txt
 
 # Ignore generated TSV spreadsheets
 *_report.tsv
