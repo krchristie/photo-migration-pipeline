@@ -17,11 +17,11 @@ report_save_config.txt
 # Automatically created by Finder to store directory view settings, icon positions, and custom attributes.
 .DS_Store
 
-# ==========================================
 # Python Bytecode and Cache
-# ==========================================
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 
+# Claude directory
+.claude/
