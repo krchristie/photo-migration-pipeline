@@ -502,13 +502,26 @@ def prompt_report_configuration(start_scan_dir, start_save_dir, show_photographe
         default_toggle_frame = tk.Frame(root)
         default_toggle_frame.pack(fill="x", padx=20, pady=(5, 5))
         
-        chk_default = tk.Checkbutton(
-            default_toggle_frame, 
-            text="Make this photographer default?", 
-            variable=var_make_default,
+        # Custom style so the checked-state indicator can be recolored (mirrors the
+        # Purple.TCombobox approach above; plain tk.Checkbutton ignores selectcolor
+        # under macOS Aqua's native checkbox rendering)
+        style.configure(
+            "Purple.TCheckbutton",
             font=("Arial", 12, "bold"),
-            fg="#9600FF",
-            activeforeground="#9600FF"
+            background=default_toggle_frame.cget("bg")
+        )
+        style.map(
+            "Purple.TCheckbutton",
+            foreground=[("disabled", "#999999"), ("!disabled", "#9600FF")],
+            indicatorbackground=[("disabled", "#dcdad5"), ("selected", "#9600FF"), ("!selected", "#ffffff")],
+            indicatorforeground=[("disabled", "#999999"), ("selected", "#ffffff")]
+        )
+
+        chk_default = ttk.Checkbutton(
+            default_toggle_frame,
+            text="Make this photographer default?",
+            variable=var_make_default,
+            style="Purple.TCheckbutton"
         )
         chk_default.pack(side="left")
 
